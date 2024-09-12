@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"time"
+	"os"
 
 	_ "github.com/lib/pq"
+	"morgan.greenlight.nex/internal/logger"
 )
 
 const (
@@ -16,24 +14,15 @@ const (
 )
 
 func main() {
-
+	logger := logger.New(os.Stdout, logger.LevelInfo)
 	cfg := newConfig()
 	db, err := openDB(&cfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.PrintFatal(err.Error(), nil)
 	}
 	defer db.Close()
-	app := newApplication(&cfg, db)
+	app := newApplication(&cfg, db, logger)
 	//Run DB migration
-	runDBMigration(migrationUrl, cfg.db.dsn)
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", cfg.port),
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	}
-	app.logger.Printf("starting %s server on %s", cfg.env, srv.Addr)
-
-	err = srv.ListenAndServe()
-	app.logger.Fatal(err)
+	runDBMigration(migrationUrl, cfg.db.dsn, logger)
+	app.serve()
 }

@@ -10,12 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (app *application) logError(_ *gin.Context, err error) {
-	app.logger.Println(err)
+func (app *application) logError(c *gin.Context, err error) {
+	app.logger.PrintError(err.Error(), map[string]any{
+		"request_method": c.Request.Method,
+		"request_url":    c.Request.URL,
+	})
 }
 
 func (app *application) errorResponse(c *gin.Context, status int, err error) {
-	app.JSON(c, status, envelope{
+	app.json(c, status, envelope{
 		"status":  "error",
 		"message": err.Error(),
 	})
@@ -40,10 +43,15 @@ func (app *application) editConflictResponse(c *gin.Context) {
 }
 
 func (app *application) failedValidationResponse(c *gin.Context, errors map[string]string) {
-	app.JSON(c, http.StatusUnprocessableEntity, envelope{
+	app.json(c, http.StatusUnprocessableEntity, envelope{
 		"status": "failed",
 		"errors": errors,
 	})
+}
+
+func (app *application) rateLimitExceededResponse(c *gin.Context) {
+	message := "rate limit exceeded"
+	app.errorResponse(c, http.StatusTooManyRequests, errors.New(message))
 }
 
 func handleJsonDecodeError(err error) error {

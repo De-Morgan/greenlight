@@ -14,7 +14,7 @@ import (
 
 type envelope map[string]any
 
-func (app *application) JSON(c *gin.Context, status int, data interface{}) {
+func (app *application) json(c *gin.Context, status int, data interface{}) {
 	c.JSON(status, data)
 }
 
@@ -23,10 +23,10 @@ func (app *application) successResponse(c *gin.Context, data any) {
 		"status": "success",
 		"data":   data,
 	}
-	app.JSON(c, http.StatusOK, ev)
+	app.json(c, http.StatusOK, ev)
 }
 
-func (app *application) DecodeJson(body io.Reader, data any) error {
+func (app *application) decodeJson(body io.Reader, data any) error {
 	err := json.NewDecoder(body).Decode(data)
 	return handleJsonDecodeError(err)
 }
@@ -63,7 +63,7 @@ func readIntQuery(c *gin.Context, key string, fallback int, v *validator.Validat
 	return i
 }
 
-func ValidateFilters(c *gin.Context, v *validator.Validator, f *data.Filters) {
+func validateFilters(c *gin.Context, v *validator.Validator, f *data.Filters) {
 	v.Check(f.Page < 0, "page", "must be greater than zero")
 	v.Check(f.Page >= 10_000_000, "page", "must be a maximum of 10 million")
 	v.Check(f.Limit < 0, "limit", "must be greater than zero")

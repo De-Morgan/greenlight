@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"morgan.greenlight.nex/internal/logger"
 )
 
 func openDB(cfg *config) (*sql.DB, error) {
@@ -31,13 +31,17 @@ func openDB(cfg *config) (*sql.DB, error) {
 	return db, nil
 }
 
-func runDBMigration(migrationUrl, dbSource string) {
+func runDBMigration(migrationUrl, dbSource string, logger *logger.Logger) {
 	m, err := migrate.New(migrationUrl, dbSource)
 	if err != nil {
-		log.Fatal("cannot create a new migration instance: ", err)
+		logger.PrintFatal("cannot create a new migration instance: ", map[string]any{
+			"error": err,
+		})
 	}
 	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("failed to run migrate up: ", err)
+		logger.PrintFatal("failed to run migrate up: ", map[string]any{
+			"error": err,
+		})
 	}
-	log.Println("db migrated successfully")
+	logger.PrintInfo("db migrated successfully", nil)
 }

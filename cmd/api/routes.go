@@ -12,6 +12,7 @@ func (app *application) routes() *gin.Engine {
 
 	router := gin.Default()
 	router.Use(setMaxSizeMiddleware())
+
 	router.NoRoute(app.notFoundResponse)
 
 	v1 := router.Group(apiVersion)

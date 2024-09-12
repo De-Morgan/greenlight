@@ -15,7 +15,7 @@ func (app *application) createMovieHandler(c *gin.Context) {
 
 	var input MovieRequest
 
-	if err := app.DecodeJson(c.Request.Body, &input); err != nil {
+	if err := app.decodeJson(c.Request.Body, &input); err != nil {
 		app.badRequestResponse(c, err)
 		return
 	}
@@ -66,7 +66,7 @@ func (app *application) deleteMovieHandler(c *gin.Context) {
 	if shouldReturn {
 		return
 	}
-	app.JSON(c, http.StatusNoContent, nil)
+	app.json(c, http.StatusNoContent, nil)
 }
 func (app *application) updateMovieHandler(c *gin.Context) {
 
@@ -77,7 +77,7 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 	}
 
 	var input MovieRequest
-	if err := app.DecodeJson(c.Request.Body, &input); err != nil {
+	if err := app.decodeJson(c.Request.Body, &input); err != nil {
 		app.badRequestResponse(c, err)
 		return
 	}
@@ -127,7 +127,7 @@ func (app *application) listMoviesHandler(c *gin.Context) {
 	// //supported Sort list
 	input.SortSafelist = []string{"id", "title", "year", "runtime"}
 	//Validation
-	ValidateFilters(c, v, &input.Filters)
+	validateFilters(c, v, &input.Filters)
 	if !v.Valid() {
 		app.failedValidationResponse(c, v.Errors)
 		return
