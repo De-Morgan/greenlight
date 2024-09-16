@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -24,6 +25,13 @@ func (app *application) successResponse(c *gin.Context, data any) {
 		"data":   data,
 	}
 	app.json(c, http.StatusOK, ev)
+}
+func (app *application) createdResponse(c *gin.Context, data any) {
+	ev := envelope{
+		"status": "success",
+		"data":   data,
+	}
+	app.json(c, http.StatusAccepted, ev)
 }
 
 func (app *application) decodeJson(body io.Reader, data any) error {
@@ -76,4 +84,18 @@ func validateFilters(c *gin.Context, v *validator.Validator, f *data.Filters) {
 	f.Page = readIntQuery(c, "page", 1, v)
 	f.Limit = readIntQuery(c, "limit", 20, v)
 
+}
+
+func (app *application) background(fn func()) {
+	app.wg.Add(1)
+
+	go func() {
+		defer app.wg.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Sprintf("%s", err), nil)
+			}
+		}()
+		fn()
+	}()
 }

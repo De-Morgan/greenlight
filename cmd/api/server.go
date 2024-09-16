@@ -32,6 +32,11 @@ func (app *application) serve() {
 	if err != http.ErrServerClosed {
 		app.logger.PrintFatal(err.Error(), nil)
 	}
+
+	// Log a message to say that we're waiting for any background goroutines to // complete their tasks.
+	app.logger.PrintInfo("completing background tasks", map[string]any{"addr": srv.Addr})
+	//Wait for background processes to complete
+	app.wg.Wait()
 	err = <-showdownErr
 	if err != nil {
 		app.logger.PrintFatal("problem with graceful shutdown", map[string]any{

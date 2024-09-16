@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"slices"
 	"time"
@@ -37,6 +38,13 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 func newConfig() config {
@@ -46,11 +54,26 @@ func newConfig() config {
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.Var(&cfg.env, "env", "Environment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "dsn", os.Getenv("GREENLIGHT_DB_DSN"), "Postgres connection string")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "Postgres connection string")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
+
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.gmail.com", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "<michaeladesola1410@gmail.com", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "password", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Morgan <michaeladesola1410@gmail.com>", "SMTP sender")
+
+	showVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		fmt.Printf("Build time: \t%s\n", buildTime)
+		os.Exit(0)
+	}
 
 	return cfg
 }

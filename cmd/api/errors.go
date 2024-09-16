@@ -23,6 +23,15 @@ func (app *application) errorResponse(c *gin.Context, status int, err error) {
 		"message": err.Error(),
 	})
 }
+
+func (app *application) invalidCredentialsResponse(c *gin.Context) {
+	app.errorResponse(c, http.StatusUnauthorized, errors.New("invalid authentication credentials"))
+}
+func (app *application) invalidAuthorizationTokenResponse(c *gin.Context) {
+	c.Header("WWW-Authenticate", "Bearer")
+	app.errorResponse(c, http.StatusUnauthorized, errors.New("invalid or missing authentication token"))
+}
+
 func (app *application) serverErrorResponse(c *gin.Context, err error) {
 	app.logError(c, err)
 	message := "the server encountered a problem and could not process your request"
@@ -42,6 +51,20 @@ func (app *application) editConflictResponse(c *gin.Context) {
 	app.errorResponse(c, http.StatusConflict, errors.New(message))
 }
 
+// func (app *application) authenticationRequiredResponse(c *gin.Context) {
+// 	message := "you must be authenticated to access this resource"
+// 	app.errorResponse(c, http.StatusUnauthorized, errors.New(message))
+// }
+
+func (app *application) inactiveAccountResponse(c *gin.Context) {
+	message := "your user account must be activated to access this resource"
+	app.errorResponse(c, http.StatusForbidden, errors.New(message))
+}
+func (app *application) notPermittedResponse(c *gin.Context) {
+	message := "your user account doesn't have the necessary permissions to access this resource"
+	app.errorResponse(c, http.StatusForbidden, errors.New(message))
+}
+
 func (app *application) failedValidationResponse(c *gin.Context, errors map[string]string) {
 	app.json(c, http.StatusUnprocessableEntity, envelope{
 		"status": "failed",
@@ -49,10 +72,10 @@ func (app *application) failedValidationResponse(c *gin.Context, errors map[stri
 	})
 }
 
-func (app *application) rateLimitExceededResponse(c *gin.Context) {
-	message := "rate limit exceeded"
-	app.errorResponse(c, http.StatusTooManyRequests, errors.New(message))
-}
+// func (app *application) rateLimitExceededResponse(c *gin.Context) {
+// 	message := "rate limit exceeded"
+// 	app.errorResponse(c, http.StatusTooManyRequests, errors.New(message))
+// }
 
 func handleJsonDecodeError(err error) error {
 	//There is a syntax problem with the JSON being decoded.
